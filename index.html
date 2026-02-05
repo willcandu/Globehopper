@@ -39,42 +39,99 @@
             -ms-overflow-style: none;
             scrollbar-width: none;
         }
+        /* Simple Markdown Styles */
+        .markdown-body h1 { font-size: 1.5em; font-weight: bold; margin-top: 1em; margin-bottom: 0.5em; color: #44403C; }
+        .markdown-body h2 { font-size: 1.25em; font-weight: 600; margin-top: 1em; margin-bottom: 0.5em; color: #D4A373; }
+        .markdown-body h3 { font-size: 1.1em; font-weight: 600; margin-top: 0.75em; margin-bottom: 0.25em; }
+        .markdown-body p { margin-bottom: 0.8em; line-height: 1.6; color: #57534E; }
+        .markdown-body ul { list-style-type: disc; padding-left: 1.5em; margin-bottom: 1em; }
+        .markdown-body li { margin-bottom: 0.3em; }
+        .markdown-body strong { font-weight: 600; color: #292524; }
+        
+        /* Map Icon Styles */
+        .custom-div-icon {
+            background: transparent;
+            border: none;
+        }
     </style>
 </head>
-<body class="max-w-md mx-auto min-h-screen relative overflow-x-hidden">
+<body class="max-w-md mx-auto min-h-screen relative overflow-x-hidden pb-24">
 
 <div id="app" v-cloak>
     
-    <!-- HOMEPAGE / TRIP SETUP -->
-    <div v-if="!hasStarted" class="min-h-screen flex flex-col justify-center px-8 animate-in fade-in duration-700 py-10">
-        <div class="mb-8 text-center">
-            <div class="w-16 h-16 bg-[#D4A373] rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl text-white">
-                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+    <!-- GLOBAL HEADER (Visible on all tabs) -->
+    <header class="p-6 pt-10 flex justify-between items-start sticky top-0 bg-[#FDFBF7]/95 backdrop-blur z-40">
+        <div>
+            <!-- Header Text changes based on Tab -->
+            <div v-if="activeTab === 'home'">
+                <h1 class="text-xl font-bold text-stone-800 italic">GlobeHopper</h1>
+                <p class="text-[10px] uppercase tracking-[0.2em] text-stone-400">Trip Settings</p>
             </div>
-            <h1 class="text-3xl font-light italic text-stone-800 mb-2">GlobeHopper</h1>
-            <p class="text-stone-400 text-sm tracking-widest uppercase">Nordic Travel Suite</p>
+            <div v-else-if="activeTab === 'ai-suggestions'">
+                <h1 class="text-xl font-light text-stone-800 italic">AI <span class="font-medium not-italic">Suggestions</span></h1>
+                <p class="text-[10px] uppercase tracking-[0.2em] text-[#D4A373]">Curated Guide</p>
+            </div>
+            <div v-else>
+                <p class="text-xs uppercase tracking-[0.2em] text-stone-400 font-semibold mb-1 truncate max-w-[150px]">
+                    {{ tripDetails.origin }} <span class="text-[#D4A373]">&rarr;</span> {{ destinationDisplay }}
+                </p>
+                <h1 class="text-xl font-light text-stone-800 italic">Hej, <span class="font-medium not-italic">Traveler</span></h1>
+            </div>
         </div>
 
-        <div class="space-y-6">
-            <!-- Dates Section -->
+        <!-- Real-Time FX Badge (Always Visible) -->
+        <div v-if="currentRate" class="bg-white border border-stone-200 rounded-xl px-3 py-2 shadow-sm text-right min-w-[100px]">
+            <p class="text-[10px] font-bold text-[#D4A373] uppercase tracking-wider flex justify-end items-center gap-1">
+                Live FX <span class="relative flex h-2 w-2"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span></span>
+            </p>
+            <p class="text-xs font-semibold text-stone-800 mt-0.5">1 {{ tripDetails.destCurrency }} ≈ {{ currentRate.toFixed(2) }} {{ tripDetails.homeCurrency }}</p>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="px-6">
+        
+        <!-- === HOME TAB (Trip Settings & AI) === -->
+        <div v-if="activeTab === 'home'" class="animate-in fade-in duration-500 space-y-6">
+            <div class="p-6 bg-white rounded-3xl nordic-shadow border border-stone-100 text-center">
+                <div class="w-12 h-12 bg-[#D4A373] rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg text-white">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                </div>
+                <h2 class="text-lg font-medium text-stone-800">Trip Configuration</h2>
+                <p class="text-xs text-stone-400 mt-1">Update details or save progress.</p>
+            </div>
+
+            <!-- Manage Data Section -->
             <div class="space-y-1">
-                <label class="text-xs font-bold uppercase text-stone-400 ml-1">Trip Dates</label>
-                <div class="grid grid-cols-2 gap-3">
-                    <input v-model="tripDetails.startDate" type="date" class="w-full bg-white p-4 rounded-2xl border border-stone-100 outline-none focus:ring-1 focus:ring-[#D4A373] text-stone-600">
-                    <input v-model="tripDetails.endDate" type="date" class="w-full bg-white p-4 rounded-2xl border border-stone-100 outline-none focus:ring-1 focus:ring-[#D4A373] text-stone-600">
+                <label class="text-xs font-bold uppercase text-stone-400 ml-1">Manage Trip Data</label>
+                <div class="flex gap-3">
+                    <button @click="downloadTrip" class="flex-1 py-3 bg-white border border-stone-200 rounded-2xl text-xs font-medium text-stone-600 shadow-sm hover:bg-stone-50 flex items-center justify-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                        Save Down
+                    </button>
+                    <label class="flex-1 py-3 bg-white border border-stone-200 rounded-2xl text-xs font-medium text-stone-600 shadow-sm hover:bg-stone-50 flex items-center justify-center gap-2 cursor-pointer">
+                        <input type="file" ref="fileInput" @change="uploadTrip" class="hidden" accept=".json">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                        Load Trip
+                    </label>
                 </div>
             </div>
 
             <!-- Route Section -->
             <div class="space-y-1">
-                <label class="text-xs font-bold uppercase text-stone-400 ml-1">Route</label>
+                <label class="text-xs font-bold uppercase text-stone-400 ml-1">Route & Dates</label>
                 <div class="space-y-3">
+                    <div class="grid grid-cols-2 gap-3">
+                        <input v-model="tripDetails.startDate" type="date" class="w-full bg-white p-4 rounded-2xl border border-stone-100 outline-none focus:ring-1 focus:ring-[#D4A373] text-xs text-stone-600">
+                        <input v-model="tripDetails.endDate" type="date" class="w-full bg-white p-4 rounded-2xl border border-stone-100 outline-none focus:ring-1 focus:ring-[#D4A373] text-xs text-stone-600">
+                    </div>
+                    
                     <div class="relative">
                         <span class="absolute left-4 top-4 text-xs font-bold text-stone-300 uppercase">From</span>
                         <input v-model="tripDetails.origin" type="text" placeholder="Origin City" class="w-full bg-white pl-16 pr-4 py-4 rounded-2xl border border-stone-100 outline-none focus:ring-1 focus:ring-[#D4A373]">
                     </div>
                     
-                    <div v-for="(dest, index) in tripDetails.destinations" :key="index" class="relative flex gap-2 animate-in slide-in-from-bottom-2">
+                    <div v-for="(dest, index) in tripDetails.destinations" :key="index" class="relative flex gap-2">
                         <div class="relative flex-1">
                             <span class="absolute left-4 top-4 text-xs font-bold text-[#D4A373] uppercase">To</span>
                             <input v-model="dest.name" type="text" placeholder="Destination City" class="w-full bg-white pl-12 pr-4 py-4 rounded-2xl border border-stone-100 outline-none focus:ring-1 focus:ring-[#D4A373]">
@@ -95,188 +152,208 @@
             <div class="space-y-1">
                 <label class="text-xs font-bold uppercase text-stone-400 ml-1">Currency</label>
                 <div class="grid grid-cols-2 gap-3">
-                    <div class="relative">
+                    <div class="relative group">
                          <span class="absolute left-4 top-4 text-[10px] font-bold text-stone-400 uppercase">Spending</span>
-                        <select v-model="tripDetails.destCurrency" class="w-full bg-white px-4 pt-6 pb-2 rounded-2xl border border-stone-100 outline-none focus:ring-1 focus:ring-[#D4A373] appearance-none">
+                        <select v-model="tripDetails.destCurrency" @change="fetchRate" class="w-full bg-white px-4 pt-6 pb-2 rounded-2xl border border-stone-100 outline-none focus:ring-1 focus:ring-[#D4A373] appearance-none cursor-pointer">
                             <option v-for="c in currencies" :key="c" :value="c">{{c}}</option>
                         </select>
-                         <div class="absolute right-4 top-5 pointer-events-none text-stone-400">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
-                        </div>
+                         <div class="absolute right-4 top-5 pointer-events-none text-stone-400">▼</div>
                     </div>
-                    <div class="relative">
+                    <div class="relative group">
                         <span class="absolute left-4 top-4 text-[10px] font-bold text-stone-400 uppercase">Home</span>
-                        <select v-model="tripDetails.homeCurrency" class="w-full bg-white px-4 pt-6 pb-2 rounded-2xl border border-stone-100 outline-none focus:ring-1 focus:ring-[#D4A373] appearance-none">
+                        <select v-model="tripDetails.homeCurrency" @change="fetchRate" class="w-full bg-white px-4 pt-6 pb-2 rounded-2xl border border-stone-100 outline-none focus:ring-1 focus:ring-[#D4A373] appearance-none cursor-pointer">
                             <option v-for="c in currencies" :key="c" :value="c">{{c}}</option>
                         </select>
-                        <div class="absolute right-4 top-5 pointer-events-none text-stone-400">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
-                        </div>
+                        <div class="absolute right-4 top-5 pointer-events-none text-stone-400">▼</div>
                     </div>
                 </div>
             </div>
 
-            <button @click="startTrip" class="w-full py-5 mt-4 bg-stone-800 text-white rounded-2xl font-medium shadow-lg hover:bg-stone-900 transition-all flex items-center justify-center gap-2">
-                Start Planning
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-            </button>
+            <!-- AI Planning Section (With Secure Key Input) -->
+            <div class="space-y-1">
+                <label class="text-xs font-bold uppercase text-stone-400 ml-1">AI Trip Planner</label>
+                
+                <!-- API Key Input -->
+                <div class="relative mb-2">
+                    <input v-model="geminiApiKey" type="password" placeholder="Paste Gemini API Key here to enable AI" class="w-full bg-white p-4 rounded-2xl border border-stone-100 outline-none focus:ring-1 focus:ring-[#D4A373] text-sm">
+                    <p class="text-[10px] text-stone-400 px-4 mt-1">Key is stored safely in your browser, not on the server.</p>
+                </div>
+
+                <textarea v-model="userNotes" placeholder="E.g., I love museums, vegan food, and hiking. Prefer a relaxed pace." class="w-full bg-white p-4 rounded-2xl border border-stone-100 outline-none focus:ring-1 focus:ring-[#D4A373] min-h-[100px] text-sm text-stone-600 resize-none"></textarea>
+                
+                <button @click="generateItinerary" :disabled="loading" class="w-full py-5 mt-4 bg-stone-800 text-white rounded-2xl font-medium shadow-lg hover:bg-stone-900 transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed">
+                    <span v-if="loading" class="animate-spin">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+                    </span>
+                    <span v-else>
+                        Generate Itinerary with AI
+                    </span>
+                    <svg v-if="!loading" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+                </button>
+            </div>
         </div>
-    </div>
 
-    <!-- MAIN APP INTERFACE -->
-    <div v-else class="animate-in fade-in slide-in-from-bottom-4 duration-500">
-        <!-- Header -->
-        <header class="p-6 pt-10 flex justify-between items-start">
-            <div>
-                <p class="text-xs uppercase tracking-[0.2em] text-stone-400 font-semibold mb-1 truncate max-w-[200px]">
-                    {{ tripDetails.origin }} <span class="text-[#D4A373]">&rarr;</span> {{ destinationDisplay }}
-                </p>
-                <h1 class="text-2xl font-light text-stone-800 italic">Hej, <span class="font-medium not-italic">Traveler</span></h1>
-            </div>
-            <div class="flex items-center gap-3">
-                <!-- FX Badge -->
-                <div v-if="currentRate" class="bg-white border border-stone-100 rounded-xl px-3 py-2 shadow-sm text-right">
-                    <p class="text-[10px] font-bold text-stone-400 uppercase tracking-wider">Live FX</p>
-                    <p class="text-xs font-semibold text-stone-800">1 {{ tripDetails.destCurrency }} ≈ {{ currentRate.toFixed(2) }} {{ tripDetails.homeCurrency }}</p>
+        <!-- === AI SUGGESTIONS TAB === -->
+        <div v-if="activeTab === 'ai-suggestions'" class="animate-in fade-in duration-500">
+            <div v-if="!aiMarkdown" class="text-center py-20 px-6">
+                <div class="w-16 h-16 bg-stone-100 rounded-full flex items-center justify-center mx-auto mb-4 text-stone-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
                 </div>
-
-                <div @click="hasStarted = false" class="w-10 h-10 rounded-full bg-[#D4A373] flex items-center justify-center text-white shadow-lg cursor-pointer hover:bg-[#c29263] transition-colors shrink-0">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-                </div>
+                <h3 class="text-lg font-medium text-stone-800">No suggestions yet</h3>
+                <p class="text-sm text-stone-400 mt-2">Go to Home and click "Generate Itinerary" to get a custom AI travel guide.</p>
+                <button @click="switchTab('home')" class="mt-6 px-6 py-2 bg-[#D4A373] text-white rounded-xl text-sm font-medium">Go to Setup</button>
             </div>
-        </header>
-
-        <!-- Main Content -->
-        <main class="px-6 pb-32">
             
-            <!-- ITINERARY TAB -->
-            <div v-if="activeTab === 'itinerary'">
-                <!-- Date Selector -->
-                <div class="mb-6 overflow-x-auto hide-scrollbar -mx-6 px-6 pb-2">
-                    <div class="flex gap-3 min-w-min">
-                        <button 
-                            v-for="day in tripDays" 
-                            :key="day.iso"
-                            @click="selectedDate = day.iso"
-                            :class="['flex flex-col items-center justify-center min-w-[70px] h-20 rounded-2xl border transition-all duration-300',
-                                     selectedDate === day.iso 
-                                     ? 'bg-stone-800 text-white border-stone-800 shadow-lg scale-105' 
-                                     : 'bg-white text-stone-400 border-stone-100']"
-                        >
-                            <span class="text-[10px] font-bold uppercase tracking-wider opacity-60">{{ day.weekday }}</span>
-                            <span class="text-xl font-semibold">{{ day.dayNum }}</span>
-                        </button>
-                    </div>
-                </div>
+            <div v-else class="bg-white p-6 rounded-3xl nordic-shadow border border-stone-100">
+                <!-- Simple Markdown Renderer -->
+                <div class="markdown-body" v-html="renderMarkdown(aiMarkdown)"></div>
+            </div>
+        </div>
 
-                <!-- Accommodation Card -->
-                <div class="mb-6">
-                    <div @click="openAccommodationModal" class="bg-[#F3F0EB] p-4 rounded-2xl border border-stone-200/50 flex items-center justify-between cursor-pointer hover:bg-[#EBE7E0] transition-colors group">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-[#D4A373] shadow-sm">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V7l8-4 8 4v14M5 10a2 2 0 1 0 4 0 2 2 0 1 0-4 0M5 14a2 2 0 1 0 4 0 2 2 0 1 0-4 0M5 18a2 2 0 1 0 4 0 2 2 0 1 0-4 0M15 10a2 2 0 1 0 4 0 2 2 0 1 0-4 0M15 14a2 2 0 1 0 4 0 2 2 0 1 0-4 0M15 18a2 2 0 1 0 4 0 2 2 0 1 0-4 0"/></svg>
-                            </div>
-                            <div>
-                                <p class="text-[10px] font-bold uppercase tracking-wider text-stone-400">Residing At</p>
-                                <p class="text-sm font-medium text-stone-800 truncate max-w-[200px]">
-                                    {{ getCurrentAccommodation?.name || 'Set Accommodation' }}
-                                </p>
-                            </div>
-                        </div>
-                        <div class="text-stone-400 group-hover:text-stone-600">
-                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-xl font-medium">Daily Plans</h2>
-                    <button @click="openItineraryModal" class="p-2 rounded-full bg-stone-100 hover:bg-stone-200 transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        <!-- === ITINERARY TAB === -->
+        <div v-if="activeTab === 'itinerary'">
+            <!-- Date Selector -->
+            <div class="mb-6 overflow-x-auto hide-scrollbar -mx-6 px-6 pb-2">
+                <div class="flex gap-3 min-w-min">
+                    <button 
+                        v-for="day in tripDays" 
+                        :key="day.iso"
+                        @click="selectedDate = day.iso"
+                        :class="['flex flex-col items-center justify-center min-w-[70px] h-20 rounded-2xl border transition-all duration-300',
+                                 selectedDate === day.iso 
+                                 ? 'bg-stone-800 text-white border-stone-800 shadow-lg scale-105' 
+                                 : 'bg-white text-stone-400 border-stone-100']"
+                    >
+                        <span class="text-[10px] font-bold uppercase tracking-wider opacity-60">{{ day.weekday }}</span>
+                        <span class="text-xl font-semibold">{{ day.dayNum }}</span>
                     </button>
                 </div>
-                
-                <div class="space-y-4 mb-8">
-                    <div v-for="(item, index) in filteredItinerary" :key="index" class="bg-white p-4 rounded-2xl nordic-shadow border border-stone-100 flex gap-4 items-start animate-in slide-in-from-bottom-2 duration-300">
-                        <div class="text-xs font-bold text-[#D4A373] mt-1 w-12 shrink-0">{{ item.time }}</div>
-                        <div class="flex-1">
-                            <h3 class="font-medium text-stone-800">{{ item.activity }}</h3>
-                            <p class="text-xs text-stone-400 flex items-center gap-1 mt-1 truncate">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
-                                {{ item.locationName || item.location }}
+            </div>
+
+            <!-- Accommodation Card -->
+            <div class="mb-6">
+                <div @click="openAccommodationModal" class="bg-[#F3F0EB] p-4 rounded-2xl border border-stone-200/50 flex items-center justify-between cursor-pointer hover:bg-[#EBE7E0] transition-colors group">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-[#D4A373] shadow-sm">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V7l8-4 8 4v14M5 10a2 2 0 1 0 4 0 2 2 0 1 0-4 0M5 14a2 2 0 1 0 4 0 2 2 0 1 0-4 0M5 18a2 2 0 1 0 4 0 2 2 0 1 0-4 0M15 10a2 2 0 1 0 4 0 2 2 0 1 0-4 0M15 14a2 2 0 1 0 4 0 2 2 0 1 0-4 0M15 18a2 2 0 1 0 4 0 2 2 0 1 0-4 0"/></svg>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-bold uppercase tracking-wider text-stone-400">Residing At</p>
+                            <p class="text-sm font-medium text-stone-800 truncate max-w-[200px]">
+                                {{ getCurrentAccommodation?.name || 'Set Accommodation' }}
                             </p>
                         </div>
                     </div>
-                    <div v-if="filteredItinerary.length === 0" class="text-center py-8">
-                        <p class="text-stone-300 text-sm mb-2">No activities yet.</p>
-                        <button @click="openItineraryModal" class="text-sm text-[#D4A373] font-medium hover:underline">Add an activity</button>
+                    <div class="text-stone-400 group-hover:text-stone-600">
+                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                     </div>
                 </div>
+            </div>
 
-                <!-- Daily Map Section -->
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-medium">Daily Plans</h2>
+                <button @click="openItineraryModal" class="p-2 rounded-full bg-stone-100 hover:bg-stone-200 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                </button>
+            </div>
+            
+            <div class="space-y-4 mb-8">
+                <div v-for="(item, index) in filteredItinerary" :key="index" class="bg-white p-4 rounded-2xl nordic-shadow border border-stone-100 flex gap-4 items-start animate-in slide-in-from-bottom-2 duration-300">
+                    <div class="text-xs font-bold text-[#D4A373] mt-1 w-12 shrink-0">{{ item.time }}</div>
+                    <div class="flex-1">
+                        <h3 class="font-medium text-stone-800">{{ item.activity }}</h3>
+                        <p class="text-xs text-stone-400 flex items-center gap-1 mt-1 truncate">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                            {{ item.locationName || item.location }}
+                        </p>
+                    </div>
+                    <!-- Delete Button for manual editing -->
+                    <button @click="removeItem(index)" class="text-stone-300 hover:text-red-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                    </button>
+                </div>
+                <div v-if="filteredItinerary.length === 0" class="text-center py-8">
+                    <p class="text-stone-300 text-sm mb-2">No activities yet.</p>
+                    <button @click="openItineraryModal" class="text-sm text-[#D4A373] font-medium hover:underline">Add an activity</button>
+                </div>
+            </div>
+
+            <!-- Daily Map Section -->
+            <div>
+                <h2 class="text-xl font-medium mb-4">Day Overview</h2>
+                <div class="rounded-3xl overflow-hidden bg-stone-100 h-[250px] relative nordic-shadow border-4 border-white z-0">
+                    <div id="dailyMap" class="w-full h-full z-0"></div>
+                    <div v-if="!mapInitialized" class="absolute inset-0 flex items-center justify-center bg-stone-100 z-10">
+                        <span class="text-stone-400 text-sm animate-pulse">Loading Map...</span>
+                    </div>
+                </div>
+                <!-- GOOGLE MAPS LINK BUTTON -->
+                <div v-if="googleMapsLink" class="mt-4">
+                    <a :href="googleMapsLink" target="_blank" class="block w-full py-3 bg-[#4285F4] text-white rounded-xl text-center font-medium shadow-md hover:bg-[#3367d6] transition-colors flex items-center justify-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                        Open Route in Google Maps
+                    </a>
+                    <p class="text-[10px] text-stone-400 text-center mt-2">View real-time traffic and directions</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- === LEDGER TAB === -->
+        <div v-if="activeTab === 'ledger'" class="animate-in fade-in duration-500">
+            <div class="flex justify-between items-center mb-6">
                 <div>
-                    <h2 class="text-xl font-medium mb-4">Day Overview</h2>
-                    <div class="rounded-3xl overflow-hidden bg-stone-100 h-[250px] relative nordic-shadow border-4 border-white z-0">
-                        <div id="dailyMap" class="w-full h-full z-0"></div>
-                        <!-- Fallback/Loading state for map -->
-                        <div v-if="!mapInitialized" class="absolute inset-0 flex items-center justify-center bg-stone-100 z-10">
-                            <span class="text-stone-400 text-sm animate-pulse">Loading Map...</span>
-                        </div>
-                    </div>
+                    <h2 class="text-xl font-medium">Ledger</h2>
+                    <p class="text-xs text-stone-400">Total Spent: <span class="text-stone-800 font-bold">${{ totalSpend }}</span></p>
                 </div>
+                <button @click="showAddModal = 'ledger'" class="p-2 rounded-full bg-stone-100 hover:bg-stone-200 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                </button>
             </div>
-
-            <!-- LEDGER TAB -->
-            <div v-if="activeTab === 'ledger'" class="animate-in fade-in duration-500">
-                <div class="flex justify-between items-center mb-6">
+            <div class="space-y-3">
+                <div v-for="(entry, index) in ledger" :key="index" class="bg-white p-4 rounded-2xl nordic-shadow border border-stone-100 flex justify-between items-center">
                     <div>
-                        <h2 class="text-xl font-medium">Ledger</h2>
-                        <p class="text-xs text-stone-400">Total Spent: <span class="text-stone-800 font-bold">${{ totalSpend }}</span></p>
+                        <h3 class="text-sm font-medium text-stone-800">{{ entry.note }}</h3>
+                        <span class="text-[10px] uppercase tracking-wider text-stone-400 font-bold">{{ entry.category }}</span>
                     </div>
-                    <button @click="showAddModal = 'ledger'" class="p-2 rounded-full bg-stone-100 hover:bg-stone-200 transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                    </button>
+                    <div class="text-stone-800 font-semibold">{{ entry.amount }} {{ tripDetails.destCurrency }}</div>
                 </div>
-                <div class="space-y-3">
-                    <div v-for="(entry, index) in ledger" :key="index" class="bg-white p-4 rounded-2xl nordic-shadow border border-stone-100 flex justify-between items-center">
-                        <div>
-                            <h3 class="text-sm font-medium text-stone-800">{{ entry.note }}</h3>
-                            <span class="text-[10px] uppercase tracking-wider text-stone-400 font-bold">{{ entry.category }}</span>
-                        </div>
-                        <div class="text-stone-800 font-semibold">${{ entry.amount }}</div>
-                    </div>
+                <div v-if="ledger.length === 0" class="text-center py-12 text-stone-300">
+                    No expenses yet.
                 </div>
             </div>
+        </div>
 
-            <!-- SHOPPING TAB -->
-            <div v-if="activeTab === 'shopping'" class="animate-in slide-in-from-left duration-300">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-xl font-medium">Shopping List</h2>
-                    <button @click="showAddModal = 'shopping'" class="p-2 rounded-full bg-stone-100 hover:bg-stone-200 transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                    </button>
-                </div>
-                <div class="bg-white rounded-3xl overflow-hidden border border-stone-100 nordic-shadow">
-                    <div v-for="(item, index) in shoppingList" :key="index" @click="item.done = !item.done" class="p-4 flex items-center gap-4 border-b border-stone-50 last:border-0 cursor-pointer active:bg-stone-50 transition-colors">
-                        <div :class="['w-5 h-5 rounded-full border flex items-center justify-center transition-all', item.done ? 'bg-stone-800 border-stone-800' : 'border-stone-300']">
-                            <svg v-if="item.done" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                        </div>
-                        <span :class="['text-sm transition-all', item.done ? 'line-through text-stone-300' : 'text-stone-600']">{{ item.name }}</span>
+        <!-- === SHOPPING TAB === -->
+        <div v-if="activeTab === 'shopping'" class="animate-in slide-in-from-left duration-300">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-medium">Shopping List</h2>
+                <button @click="showAddModal = 'shopping'" class="p-2 rounded-full bg-stone-100 hover:bg-stone-200 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                </button>
+            </div>
+            <div class="bg-white rounded-3xl overflow-hidden border border-stone-100 nordic-shadow">
+                <div v-for="(item, index) in shoppingList" :key="index" @click="item.done = !item.done" class="p-4 flex items-center gap-4 border-b border-stone-50 last:border-0 cursor-pointer active:bg-stone-50 transition-colors">
+                    <div :class="['w-5 h-5 rounded-full border flex items-center justify-center transition-all', item.done ? 'bg-stone-800 border-stone-800' : 'border-stone-300']">
+                        <svg v-if="item.done" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
                     </div>
+                    <span :class="['text-sm transition-all', item.done ? 'line-through text-stone-300' : 'text-stone-600']">{{ item.name }}</span>
+                </div>
+                <div v-if="shoppingList.length === 0" class="text-center py-12 text-stone-300">
+                    List is empty.
                 </div>
             </div>
-        </main>
+        </div>
+    </main>
 
-        <!-- Bottom Navigation -->
-        <nav class="fixed bottom-6 left-6 right-6 h-20 bg-stone-800/95 backdrop-blur-md rounded-[2.5rem] nordic-shadow border border-white/10 flex items-center justify-around px-4 z-50">
-            <button v-for="tab in tabs" :key="tab.id" @click="switchTab(tab.id)"
-                    :class="['flex flex-col items-center justify-center w-12 h-12 rounded-2xl transition-all duration-300', 
-                             activeTab === tab.id ? 'bg-[#D4A373] text-white shadow-lg' : 'text-stone-400']">
-                <component :is="tab.icon" class="w-5 h-5"></component>
-                <span class="text-[8px] mt-1 uppercase font-bold tracking-tighter">{{ tab.label }}</span>
-            </button>
-        </nav>
-    </div>
+    <!-- Bottom Navigation -->
+    <nav class="fixed bottom-6 left-6 right-6 h-20 bg-stone-800/95 backdrop-blur-md rounded-[2.5rem] nordic-shadow border border-white/10 flex items-center justify-around px-2 z-50">
+        <button v-for="tab in tabs" :key="tab.id" @click="switchTab(tab.id)"
+                :class="['flex flex-col items-center justify-center w-12 h-12 rounded-2xl transition-all duration-300', 
+                         activeTab === tab.id ? 'bg-[#D4A373] text-white shadow-lg' : 'text-stone-400']">
+            <component :is="tab.icon" class="w-5 h-5"></component>
+            <span class="text-[8px] mt-1 uppercase font-bold tracking-tighter">{{ tab.label }}</span>
+        </button>
+    </nav>
 
     <!-- ADD / EDIT MODAL -->
     <div v-if="showAddModal" class="fixed inset-0 bg-stone-900/40 backdrop-blur-sm z-[100] flex items-end sm:items-center justify-center p-4">
@@ -315,7 +392,7 @@
                 
                 <template v-else-if="showAddModal === 'ledger'">
                     <input v-model="newItem.name" placeholder="Item name" class="w-full bg-stone-50 p-4 rounded-xl outline-none">
-                    <input v-model.number="newItem.amount" type="number" placeholder="Amount ($)" class="w-full bg-stone-50 p-4 rounded-xl outline-none">
+                    <input v-model.number="newItem.amount" type="number" placeholder="Amount" class="w-full bg-stone-50 p-4 rounded-xl outline-none">
                 </template>
                 
                 <template v-else-if="showAddModal === 'shopping'">
@@ -333,42 +410,152 @@
 
 <script>
     const { createApp, ref, computed, watch, nextTick, onMounted } = Vue;
+    
+    // STORAGE CONFIG
+    const STORAGE_KEY = 'globehopper_data_v1';
 
     createApp({
         setup() {
-            const hasStarted = ref(false);
-            const activeTab = ref('itinerary');
+            const activeTab = ref('home');
             const showAddModal = ref(null);
+            const loading = ref(false);
+            const fileInput = ref(null);
             
-            // Trip Data
+            // Trip Data (Defaults)
             const tripDetails = ref({
                 origin: '',
                 destinations: [{ name: '' }],
-                startDate: '',
+                startDate: new Date().toISOString().split('T')[0],
                 endDate: '',
                 destCurrency: 'EUR',
                 homeCurrency: 'USD'
             });
+            const userNotes = ref(''); 
+            const geminiApiKey = ref(''); // SECURE API KEY STORAGE
+            
             const selectedDate = ref(null);
             const currentRate = ref(null);
-            const currencies = ['USD', 'EUR', 'GBP', 'JPY', 'SGD', 'AUD', 'CAD', 'CHF', 'CNY', 'SEK'];
+            // Added HKD to currencies
+            const currencies = ['USD', 'EUR', 'GBP', 'HKD', 'KRW', 'JPY', 'SGD', 'AUD', 'CAD', 'CHF', 'CNY', 'SEK'];
             
             // Core Data
             const itinerary = ref([]);
-            const dailyAccommodations = ref({}); // { 'YYYY-MM-DD': { name, lat, lon } }
+            const dailyAccommodations = ref({}); 
             const ledger = ref([]);
             const shoppingList = ref([]);
+            const aiMarkdown = ref(''); 
 
             // Modal/Search State
             const newItem = ref({ name: '', time: '09:00', amount: null });
             const addressQuery = ref('');
             const addressSuggestions = ref([]);
-            const selectedGeo = ref(null); // { lat, lon, name }
+            const selectedGeo = ref(null);
 
             // Map State
             const mapInstance = ref(null);
             const mapInitialized = ref(false);
             const markers = ref([]);
+            const polylines = ref([]); 
+
+            // --- Persistence Logic ---
+            
+            const saveState = () => {
+                const data = {
+                    tripDetails: tripDetails.value,
+                    itinerary: itinerary.value,
+                    dailyAccommodations: dailyAccommodations.value,
+                    ledger: ledger.value,
+                    shoppingList: shoppingList.value,
+                    aiMarkdown: aiMarkdown.value,
+                    userNotes: userNotes.value,
+                    geminiApiKey: geminiApiKey.value // Save key locally
+                };
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+            };
+
+            const loadState = () => {
+                const saved = localStorage.getItem(STORAGE_KEY);
+                if (saved) {
+                    try {
+                        const data = JSON.parse(saved);
+                        tripDetails.value = data.tripDetails || tripDetails.value;
+                        itinerary.value = data.itinerary || [];
+                        dailyAccommodations.value = data.dailyAccommodations || {};
+                        ledger.value = data.ledger || [];
+                        shoppingList.value = data.shoppingList || [];
+                        aiMarkdown.value = data.aiMarkdown || '';
+                        userNotes.value = data.userNotes || '';
+                        geminiApiKey.value = data.geminiApiKey || ''; // Load key
+                        
+                        if(tripDetails.value.startDate) selectedDate.value = tripDetails.value.startDate;
+                    } catch(e) {
+                        console.error("Failed to load local state", e);
+                    }
+                }
+            };
+
+            // Auto-save Watcher
+            watch([tripDetails, itinerary, dailyAccommodations, ledger, shoppingList, aiMarkdown, userNotes, geminiApiKey], () => {
+                saveState();
+            }, { deep: true });
+
+            // File Export/Import Logic
+            const downloadTrip = () => {
+                const data = {
+                    version: 1,
+                    timestamp: new Date().toISOString(),
+                    tripDetails: tripDetails.value,
+                    itinerary: itinerary.value,
+                    dailyAccommodations: dailyAccommodations.value,
+                    ledger: ledger.value,
+                    shoppingList: shoppingList.value,
+                    aiMarkdown: aiMarkdown.value,
+                    userNotes: userNotes.value
+                    // Note: API Key NOT exported to file for safety
+                };
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `globehopper_trip_${new Date().toISOString().split('T')[0]}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            };
+
+            const uploadTrip = (event) => {
+                const file = event.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const data = JSON.parse(e.target.result);
+                        if (data.tripDetails) {
+                            tripDetails.value = data.tripDetails;
+                            itinerary.value = data.itinerary || [];
+                            dailyAccommodations.value = data.dailyAccommodations || {};
+                            ledger.value = data.ledger || [];
+                            shoppingList.value = data.shoppingList || [];
+                            aiMarkdown.value = data.aiMarkdown || '';
+                            userNotes.value = data.userNotes || '';
+                            
+                            saveState(); 
+                            if(tripDetails.value.startDate) selectedDate.value = tripDetails.value.startDate;
+                            fetchRate();
+                            alert("Trip loaded successfully!");
+                        } else {
+                            alert("Invalid file format");
+                        }
+                    } catch(err) {
+                        alert("Error parsing file");
+                        console.error(err);
+                    }
+                };
+                reader.readAsText(file);
+                event.target.value = '';
+            };
 
             // --- Computed ---
             const totalSpend = computed(() => ledger.value.reduce((sum, item) => sum + item.amount, 0));
@@ -380,12 +567,55 @@
                 return `${dests[0]} & ${dests.length - 1} more`;
             });
 
+            // Google Maps Deep Link Generator
+            const googleMapsLink = computed(() => {
+                const items = filteredItinerary.value;
+                const hotel = getCurrentAccommodation.value;
+                
+                if (items.length === 0 && !hotel) return null;
+
+                const baseUrl = "https://www.google.com/maps/dir/?api=1";
+                let origin = "";
+                let destination = "";
+                let waypoints = [];
+
+                if (hotel) {
+                    origin = encodeURIComponent(hotel.name);
+                } else if (items.length > 0) {
+                    origin = encodeURIComponent(items[0].locationName || items[0].location);
+                }
+
+                if (items.length > 0) {
+                    const lastItem = items[items.length - 1];
+                    destination = encodeURIComponent(lastItem.locationName || lastItem.location);
+                } else {
+                    return null; 
+                }
+
+                const startIdx = (hotel) ? 0 : 1;
+                const endIdx = items.length - 1;
+
+                if (startIdx < endIdx) {
+                    const intermediate = items.slice(startIdx, endIdx);
+                    waypoints = intermediate.map(i => encodeURIComponent(i.locationName || i.location));
+                }
+
+                let link = `${baseUrl}&origin=${origin}&destination=${destination}`;
+                if (waypoints.length > 0) {
+                    link += `&waypoints=${waypoints.join('|')}`;
+                }
+                
+                return link;
+            });
+
             const tripDays = computed(() => {
                 if (!tripDetails.value.startDate || !tripDetails.value.endDate) return [];
                 const days = [];
                 let current = new Date(tripDetails.value.startDate);
                 const end = new Date(tripDetails.value.endDate);
-                while (current <= end) {
+                
+                let loopCount = 0;
+                while (current <= end && loopCount < 60) {
                     days.push({
                         dateObj: new Date(current),
                         iso: current.toISOString().split('T')[0],
@@ -393,6 +623,7 @@
                         dayNum: current.getDate()
                     });
                     current.setDate(current.getDate() + 1);
+                    loopCount++;
                 }
                 return days;
             });
@@ -408,26 +639,25 @@
                 return selectedDate.value ? dailyAccommodations.value[selectedDate.value] : null;
             });
 
-            // --- Watchers for Map Updates ---
+            // --- Watchers ---
             watch(selectedDate, () => {
-                if (activeTab.value === 'itinerary') {
-                    nextTick(updateMap);
-                }
+                if (activeTab.value === 'itinerary') nextTick(updateMap);
             });
 
             watch(filteredItinerary, () => {
-                if (activeTab.value === 'itinerary') {
-                    nextTick(updateMap);
-                }
+                if (activeTab.value === 'itinerary') nextTick(updateMap);
             }, { deep: true });
             
             watch(dailyAccommodations, () => {
-                if (activeTab.value === 'itinerary') {
-                    nextTick(updateMap);
-                }
+                if (activeTab.value === 'itinerary') nextTick(updateMap);
             }, { deep: true });
 
-            // --- Methods ---
+            // Initialize default date when dates change
+            watch(() => tripDetails.value.startDate, (newVal) => {
+                if (newVal && !selectedDate.value) selectedDate.value = newVal;
+            });
+
+            // --- AI & API Methods ---
 
             const fetchRate = async () => {
                 try {
@@ -437,7 +667,6 @@
                         currentRate.value = 1;
                         return;
                     }
-                    // Using Frankfurter API (Free, no key)
                     const res = await fetch(`https://api.frankfurter.app/latest?amount=1&from=${from}&to=${to}`);
                     const data = await res.json();
                     if(data && data.rates) {
@@ -449,21 +678,92 @@
                 }
             };
 
-            const startTrip = () => {
-                const hasValidDest = tripDetails.value.destinations.some(d => d.name.trim() !== '');
-                if (tripDetails.value.startDate && tripDetails.value.endDate && hasValidDest) {
-                    hasStarted.value = true;
-                    selectedDate.value = tripDetails.value.startDate;
-                    
-                    fetchRate();
-
-                    // Initialize Map on first load
-                    setTimeout(() => {
-                        initMap();
-                    }, 500);
-                } else {
-                    alert('Please fill in details.');
+            const callGemini = async (prompt) => {
+                // SECURITY CHECK
+                if (!geminiApiKey.value) {
+                    alert("Please enter your Gemini API Key in the Home tab first.");
+                    throw new Error("Missing API Key");
                 }
+
+                let delay = 1000;
+                for (let i = 0; i < 3; i++) {
+                    try {
+                        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${geminiApiKey.value}`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                contents: [{ parts: [{ text: prompt }] }],
+                                generationConfig: { responseMimeType: "application/json" }
+                            })
+                        });
+                        
+                        if (!response.ok) throw new Error('API request failed');
+                        const data = await response.json();
+                        return data.candidates[0].content.parts[0].text;
+                    } catch (err) {
+                        if (i === 2) throw err;
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                        delay *= 2;
+                    }
+                }
+            };
+
+            const generateItinerary = async () => {
+                if(!tripDetails.value.startDate || !tripDetails.value.endDate || !tripDetails.value.destinations[0].name) {
+                    alert("Please enter trip dates and at least one destination.");
+                    return;
+                }
+
+                loading.value = true;
+                const destinations = tripDetails.value.destinations.map(d => d.name).join(', ');
+                
+                // UPDATED PROMPT: Request Lat/Lon for mapping
+                const prompt = `Act as a travel expert. Plan a trip to ${destinations} from ${tripDetails.value.startDate} to ${tripDetails.value.endDate}. 
+                Origin: ${tripDetails.value.origin}. 
+                User Preferences: ${userNotes.value}.
+                
+                Return a JSON object with strictly two fields:
+                1. "markdown": A string containing a nicely formatted Markdown guide of the itinerary (headers, lists, tips).
+                2. "events": An array of objects, where each object represents a specific activity with these fields: 
+                   - "date" (YYYY-MM-DD format, must match trip dates)
+                   - "time" (HH:MM 24h format)
+                   - "activity" (Short title of activity)
+                   - "location" (City/Place name for mapping)
+                   - "lat" (Number, Latitude of the place)
+                   - "lon" (Number, Longitude of the place)
+                
+                Ensure the events array covers every day of the trip. Provide accurate lat/lon so they can be plotted on a map.`;
+
+                try {
+                    const jsonString = await callGemini(prompt);
+                    const data = JSON.parse(jsonString);
+                    
+                    // Update State
+                    aiMarkdown.value = data.markdown;
+                    itinerary.value = data.events; // Auto-populate Plan
+                    
+                    // Switch to Suggestions tab to show result
+                    activeTab.value = 'ai-suggestions';
+                } catch (e) {
+                    console.error("AI Generation Error", e);
+                    if (e.message !== "Missing API Key") {
+                        alert("Failed to generate itinerary. Check your API key and try again.");
+                    }
+                } finally {
+                    loading.value = false;
+                }
+            };
+
+            const renderMarkdown = (text) => {
+                if(!text) return '';
+                // Simple parser for basic markdown
+                let html = text
+                    .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+                    .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+                    .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+                    .replace(/\*\*(.*)\*\*/gim, '<strong>$1</strong>')
+                    .replace(/\n/gim, '<br>');
+                return html;
             };
 
             // Map Logic (Leaflet)
@@ -474,7 +774,7 @@
 
                 mapInstance.value = L.map('dailyMap').setView([0, 0], 2);
                 L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+                    attribution: '&copy; OpenStreetMap',
                     subdomains: 'abcd',
                     maxZoom: 19
                 }).addTo(mapInstance.value);
@@ -486,51 +786,69 @@
             const updateMap = () => {
                 if (!mapInstance.value) return;
                 
-                // Clear existing markers
+                // Clear existing markers & polylines
                 markers.value.forEach(m => mapInstance.value.removeLayer(m));
                 markers.value = [];
+                polylines.value.forEach(p => mapInstance.value.removeLayer(p));
+                polylines.value = [];
 
                 const bounds = L.latLngBounds();
-                let hasPoints = false;
+                const routePoints = []; // For polyline
 
-                // Add Hotel Marker
+                // Add Hotel
                 const hotel = getCurrentAccommodation.value;
                 if (hotel && hotel.lat && hotel.lon) {
+                    routePoints.push([hotel.lat, hotel.lon]);
+                    
                     const hotelIcon = L.divIcon({
                         className: 'custom-div-icon',
-                        html: `<div style="background-color:#D4A373;width:12px;height:12px;border-radius:50%;border:2px solid white;box-shadow:0 2px 5px rgba(0,0,0,0.2);"></div>`,
-                        iconSize: [12, 12],
-                        iconAnchor: [6, 6]
+                        html: `<div style="background-color:#44403C;width:14px;height:14px;border-radius:50%;border:2px solid white;box-shadow:0 2px 5px rgba(0,0,0,0.3);"></div>`,
+                        iconSize: [14, 14],
+                        iconAnchor: [7, 7]
                     });
                     const m = L.marker([hotel.lat, hotel.lon], { icon: hotelIcon }).addTo(mapInstance.value).bindPopup(`<b>Hotel:</b> ${hotel.name}`);
                     markers.value.push(m);
                     bounds.extend(m.getLatLng());
-                    hasPoints = true;
                 }
 
-                // Add Itinerary Markers
+                // Add Itinerary Items
                 filteredItinerary.value.forEach((item, i) => {
                     if (item.lat && item.lon) {
-                        const marker = L.marker([item.lat, item.lon]).addTo(mapInstance.value)
+                        routePoints.push([item.lat, item.lon]);
+                        
+                        const numberedIcon = L.divIcon({
+                            className: 'custom-div-icon',
+                            html: `<div style="background-color:#D4A373;color:white;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:bold;border:2px solid white;box-shadow:0 2px 5px rgba(0,0,0,0.2);">${i+1}</div>`,
+                            iconSize: [20, 20],
+                            iconAnchor: [10, 10]
+                        });
+
+                        const marker = L.marker([item.lat, item.lon], { icon: numberedIcon }).addTo(mapInstance.value)
                             .bindPopup(`<b>${item.time}</b><br>${item.activity}`);
                         markers.value.push(marker);
                         bounds.extend(marker.getLatLng());
-                        hasPoints = true;
                     }
                 });
 
-                if (hasPoints) {
-                    mapInstance.value.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
-                } else {
-                     // Default view if no points (try to center on destination name if possible, or world)
-                     // For simple demo, we keep default or last view
+                // Draw Route Line
+                if (routePoints.length > 1) {
+                    const polyline = L.polyline(routePoints, {
+                        color: '#4285F4', // Google Maps Blueish
+                        weight: 4,
+                        opacity: 0.7,
+                        dashArray: '1, 6', // Dotted line style
+                        lineCap: 'round'
+                    }).addTo(mapInstance.value);
+                    polylines.value.push(polyline);
                 }
-                
-                // Force map resize recalc
+
+                if (routePoints.length > 0) {
+                    mapInstance.value.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
+                }
                 mapInstance.value.invalidateSize();
             };
 
-            // Address Search (Nominatim)
+            // Address Search
             let searchTimeout;
             const searchAddress = () => {
                 clearTimeout(searchTimeout);
@@ -551,15 +869,14 @@
 
             const selectAddress = (item) => {
                 selectedGeo.value = {
-                    lat: item.lat,
-                    lon: item.lon,
-                    name: item.display_name.split(',')[0] // Short name
+                    lat: parseFloat(item.lat),
+                    lon: parseFloat(item.lon),
+                    name: item.display_name.split(',')[0]
                 };
                 addressQuery.value = item.display_name;
                 addressSuggestions.value = [];
             };
 
-            // Modal Actions
             const openAccommodationModal = () => {
                 newItem.value = {};
                 addressQuery.value = '';
@@ -575,17 +892,12 @@
             };
 
             const saveItem = () => {
-                const date = selectedDate.value;
+                const date = selectedDate.value || tripDetails.value.startDate;
                 
                 if (showAddModal.value === 'accommodation') {
                     if (selectedGeo.value) {
-                        dailyAccommodations.value[date] = {
-                            name: selectedGeo.value.name,
-                            lat: selectedGeo.value.lat,
-                            lon: selectedGeo.value.lon
-                        };
+                        dailyAccommodations.value[date] = { ...selectedGeo.value };
                     } else if (addressQuery.value) {
-                         // Fallback if typed but not selected from list
                         dailyAccommodations.value[date] = { name: addressQuery.value };
                     }
                 } else if (showAddModal.value === 'itinerary') {
@@ -609,7 +921,15 @@
                 }
 
                 showAddModal.value = null;
-                // Trigger map update
+                nextTick(updateMap);
+            };
+
+            // Remove item from itinerary list
+            const removeItem = (index) => {
+                // We need to find the item in the main array, not just filtered
+                const itemToRemove = filteredItinerary.value[index];
+                const realIndex = itinerary.value.indexOf(itemToRemove);
+                if (realIndex > -1) itinerary.value.splice(realIndex, 1);
                 nextTick(updateMap);
             };
 
@@ -630,26 +950,42 @@
             const removeDestination = (index) => { if(tripDetails.value.destinations.length > 1) tripDetails.value.destinations.splice(index, 1); };
             const formatDate = (iso) => iso ? new Date(iso).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }) : '';
 
+            // Init
+            onMounted(() => {
+                loadState();
+                fetchRate();
+                if(tripDetails.value.startDate && !selectedDate.value) selectedDate.value = tripDetails.value.startDate;
+            });
+
             // Tabs config
             const tabs = [
+                { id: 'home', label: 'Home', icon: 'svg-home' },
+                { id: 'ai-suggestions', label: 'AI Tips', icon: 'svg-bulb' },
                 { id: 'itinerary', label: 'Plan', icon: 'svg-plan' },
                 { id: 'ledger', label: 'Ledger', icon: 'svg-ledger' },
                 { id: 'shopping', label: 'List', icon: 'svg-list' }
             ];
 
             return {
-                hasStarted, activeTab, itinerary, ledger, shoppingList, tabs, 
+                activeTab, itinerary, ledger, shoppingList, tabs, 
                 tripDetails, tripDays, selectedDate, filteredItinerary, destinationDisplay,
-                showAddModal, newItem, saveItem, totalSpend, startTrip, formatDate,
-                addDestination, removeDestination,
-                // New additions
+                showAddModal, newItem, saveItem, totalSpend, formatDate,
+                addDestination, removeDestination, removeItem,
                 getCurrentAccommodation, dailyAccommodations,
                 addressQuery, addressSuggestions, searchAddress, selectAddress,
                 openAccommodationModal, openItineraryModal, switchTab,
-                mapInitialized, currentRate, currencies
+                mapInitialized, currentRate, currencies, fetchRate,
+                // AI Props
+                userNotes, generateItinerary, aiMarkdown, renderMarkdown, loading,
+                googleMapsLink,
+                // Files
+                downloadTrip, uploadTrip, fileInput,
+                geminiApiKey
             }
         }
     })
+    .component('svg-home', { template: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>` })
+    .component('svg-bulb', { template: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 1 7 7c0 2.38-1.19 4.47-3 5.74V17a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2v-2.26C6.19 13.47 5 11.38 5 9a7 7 0 0 1 7-7z"/><path d="M9 21h6"/></svg>` })
     .component('svg-plan', { template: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>` })
     .component('svg-ledger', { template: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>` })
     .component('svg-list', { template: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M15 2H9a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1Z"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>` })
