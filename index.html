@@ -697,7 +697,10 @@
                             })
                         });
                         
-                        if (!response.ok) throw new Error('API request failed');
+                        if (!response.ok) {
+                            const errorData = await response.json();
+                            throw new Error(errorData.error?.message || 'API request failed');
+                        }
                         const data = await response.json();
                         return data.candidates[0].content.parts[0].text;
                     } catch (err) {
@@ -735,7 +738,9 @@
                 Ensure the events array covers every day of the trip. Provide accurate lat/lon so they can be plotted on a map.`;
 
                 try {
-                    const jsonString = await callGemini(prompt);
+                    let jsonString = await callGemini(prompt);
+                    // Sanitize: Remove ```json and ``` wrapping if present
+                    jsonString = jsonString.replace(/^```json\s*/, '').replace(/^```\s*/, '').replace(/```$/, '').trim();
                     const data = JSON.parse(jsonString);
                     
                     // Update State
@@ -747,7 +752,7 @@
                 } catch (e) {
                     console.error("AI Generation Error", e);
                     if (e.message !== "Missing API Key") {
-                        alert("Failed to generate itinerary. Check your API key and try again.");
+                        alert(`Failed to generate itinerary: ${e.message}`);
                     }
                 } finally {
                     loading.value = false;
@@ -773,7 +778,7 @@
                 if (!mapEl) return;
 
                 mapInstance.value = L.map('dailyMap').setView([0, 0], 2);
-                L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                L.tileLayer('https://{s}[.basemaps.cartocdn.com/rastertiles/voyager/](https://.basemaps.cartocdn.com/rastertiles/voyager/){z}/{x}/{y}{r}.png', {
                     attribution: '&copy; OpenStreetMap',
                     subdomains: 'abcd',
                     maxZoom: 19
